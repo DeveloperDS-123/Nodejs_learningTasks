@@ -1,5 +1,5 @@
 import Tax from "../models/taxModel.mjs"
-
+import Product from "../models/productModel.mjs"
 const createTax = async (req, res) => {
     try {
         const { name, description, type, value } = req.body
@@ -42,13 +42,39 @@ const createTax = async (req, res) => {
     }
 }
 
-const removeTax = async (req, res) => {}
+const removeTax = async (req, res) => {
+    try {
+        const { taxId } = req.query
+        if (!taxId) {
+            return res.status(400).json({ message: "TaxId is required" })
+        }
+        const productCount = await Product.find({ taxId }).countDocuments()
+        console.log("product countt", productCount)
+        if (productCount > 0) {
+            return res
+                .status(400)
+                .json({
+                    message:
+                        "Cannot delete tax. It is associated with products.",
+                })
+        }
+        const deletedTax = await Tax.findByIdAndDelete(taxId)
+
+        if (!deletedTax) {
+            return res.status(404).json({ message: "Tax not found" })
+        }
+        res.status(200).json({ message: "Tax deleted successfully." })
+    } catch (error) {
+        console.log("Error deleting tax:", error)
+        res.status(500).json({ message: "Internal Server Error" })
+    }
+}
 
 const updateTax = async (req, res) => {
     try {
         const { _id } = req.query
         const { name, description, type, value } = req.body
-console.log("idddddddd", _id);
+        console.log("idddddddd", _id)
         // Validate required fields
         if (!name || !description || !type || !value) {
             return res
@@ -58,12 +84,9 @@ console.log("idddddddd", _id);
 
         // Validate type field
         if (type !== "percentage" && type !== "fixed") {
-            return res
-                .status(400)
-                .json({
-                    message:
-                        "Invalid type. Type must be 'percentage' or 'fixed'",
-                })
+            return res.status(400).json({
+                message: "Invalid type. Type must be 'percentage' or 'fixed'",
+            })
         }
 
         // Find tax document by ID and update it
@@ -93,24 +116,23 @@ console.log("idddddddd", _id);
 const listTax = async (req, res) => {
     try {
         const { name, taxId } = req.query
-    let query = {}
+        let query = {}
 
-    let page = parseInt(req.query.page) || 1
-    let limit = parseInt(req.query.limit) || 10
-    let skip = (page - 1) * limit
+        let page = parseInt(req.query.page) || 1
+        let limit = parseInt(req.query.limit) || 10
+        let skip = (page - 1) * limit
 
-    if (name) {
-        return (query.name = name)
-    }
-    if (taxId) {
-        return (query._id = taxId)
-    }
-  
+        if (name) {
+            return (query.name = name)
+        }
+        if (taxId) {
+            return (query._id = taxId)
+        }
 
-    const taxList = await Tax.find( query ).skip(skip).limit(limit).lean()
-    res.status(200).json({
-        taxList
-    })
+        const taxList = await Tax.find(query).skip(skip).limit(limit).lean()
+        res.status(200).json({
+            taxList,
+        })
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: "Internal Server Error" })

@@ -8,7 +8,7 @@ import {
 } from "../controllers/tax.mjs"
 
 router.post("/create", createTax)
-router.delete("/remove/:id", removeTax)
+router.delete("/remove", removeTax)
 router.patch("/update", updateTax)
 router.get("/list", listTax)
 
