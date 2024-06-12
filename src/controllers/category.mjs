@@ -1,4 +1,5 @@
 import Category from "../models/categoryModel.mjs"
+import Product from "../models/productModel.mjs"
 
 const createCategory = async (req, res) => {
     try {
@@ -93,12 +94,23 @@ const updateCategory = async (req, res) => {
     }
 }
 
-const deleteCategory = async (req, res) => {
+const removeCategory = async (req, res) => {
     try {
-       const { _id } = req.query
-       if (!_id) {
-        return res.status(400).json({ message: "Category ID is required" });
-    }
+        const { _id } = req.query
+        if (!_id) {
+            return res.status(400).json({ message: "Category ID is required" })
+        }
+
+        const productCount = await Product.countDocuments({categoryId: _id})
+        console.log("productCount", productCount)
+        if (productCount > 0) {
+            return res
+                .status(400)
+                .json({
+                    message:
+                        "Cannot delete category. It is associated with products. ",
+                })
+        }
         // Check if the category exists
         const category = await Category.findById(_id).lean()
         if (!category) {
@@ -116,9 +128,9 @@ const deleteCategory = async (req, res) => {
             message: "Category deleted successfully",
         })
     } catch (error) {
-        console.error(error)
+        console.error("Error deleting category",error)
         res.status(500).json({ message: "Internal Server Error" })
     }
 }
 
-export { createCategory, listCategory, updateCategory, deleteCategory }
+export { createCategory, listCategory, updateCategory, removeCategory }

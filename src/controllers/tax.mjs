@@ -44,12 +44,12 @@ const createTax = async (req, res) => {
 
 const removeTax = async (req, res) => {
     try {
-        const { taxId } = req.query
-        if (!taxId) {
+        const { _id } = req.query
+        if (!_id) {
             return res.status(400).json({ message: "TaxId is required" })
         }
-        const productCount = await Product.find({ taxId }).countDocuments()
-        console.log("product countt", productCount)
+        const productCount = await Product.countDocuments({taxId: _id})
+        console.log("product count", productCount)
         if (productCount > 0) {
             return res
                 .status(400)
@@ -58,7 +58,7 @@ const removeTax = async (req, res) => {
                         "Cannot delete tax. It is associated with products.",
                 })
         }
-        const deletedTax = await Tax.findByIdAndDelete(taxId)
+        const deletedTax = await Tax.findByIdAndDelete(_id)
 
         if (!deletedTax) {
             return res.status(404).json({ message: "Tax not found" })

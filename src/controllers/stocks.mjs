@@ -1,7 +1,7 @@
 import Product from "../models/productModel.mjs"
 import Stock from "../models/stockModel.mjs"
-
-export const createStock = async (req, res) => {
+import Cart from "../models/cartModel.mjs"
+const createStock = async (req, res) => {
     try {
         const { productId, price, quantity } = req.body
         if (!productId || price == null || quantity == null) {
@@ -45,7 +45,7 @@ export const createStock = async (req, res) => {
     }
 }
 
-export const listStocks = async (req, res) => {
+const listStocks = async (req, res) => {
     try {
         let query = {}
         let page = req.query.page || 1
@@ -75,7 +75,7 @@ export const listStocks = async (req, res) => {
     }
 }
 
-export const removeStocks = async (req, res) => {
+const deleteStocks = async (req, res) => {
     try {
         const { _id } = req.query
 
@@ -83,7 +83,16 @@ export const removeStocks = async (req, res) => {
         if (!_id) {
             return res.status(400).json({ message: "Stock ID is required" })
         }
+const stockCount = await Cart.countDocuments({"products.stockId": _id})
 
+if(stockCount>0){
+    return res
+    .status(400)
+    .json({
+        message:
+            "Cannot delete stock. It is associated with Cart.",
+    })
+}
         // Find the stock by ID
         const stock = await Stock.findById(_id)
 
@@ -106,7 +115,7 @@ export const removeStocks = async (req, res) => {
     }
 }
 
-export const updateStocks = async (req, res) => {
+const updateStocks = async (req, res) => {
     try {
         const { _id } = req.query
         const { price, quantity } = req.body
@@ -150,3 +159,5 @@ export const updateStocks = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" })
     }
 }
+
+export { createStock, listStocks, deleteStocks, updateStocks }

@@ -1,6 +1,9 @@
+import Cart from "../models/cartModel.mjs"
+import Category from "../models/categoryModel.mjs"
 import Product from "../models/productModel.mjs"
+import Stock from "../models/stockModel.mjs"
 
-export const createProduct = async (req, res) => {
+ const createProduct = async (req, res) => {
     try {
         const { name, description, categoryId, taxId } = req.body
 
@@ -45,7 +48,7 @@ export const createProduct = async (req, res) => {
     }
 }
 
-export const listProduct = async (req, res) => {
+ const listProduct = async (req, res) => {
     try {
         let query = {}
         let page = req.query.page || 1
@@ -78,10 +81,31 @@ export const listProduct = async (req, res) => {
     }
 }
 
-export const deleteProduct = async (req, res) => {
+ const deleteProduct = async (req, res) => {
     try {
         const { _id } = req.query
         console.log("idddddddddd", _id)
+        const productStocksCount = await Stock.countDocuments({productId:_id})
+        console.log("productStocksCount", productStocksCount)
+        if (productStocksCount > 0) {
+            return res
+                .status(400)
+                .json({
+                    message:
+                        "Cannot delete product. It is associated with stocks. ",
+                })
+        }
+
+        const cartproductCount = await Cart.countDocuments({productId: _id})
+        console.log("cartproductCount", cartproductCount)
+        if (cartproductCount > 0) {
+            return res
+                .status(400)
+                .json({
+                    message:
+                        "Cannot delete product. It is associated with Cartitems. ",
+                })
+        }
 
         // Check if the category exists
         const product = await Product.findById(_id).lean()
@@ -105,7 +129,7 @@ export const deleteProduct = async (req, res) => {
     }
 }
 
-export const updateProduct = async (req, res) => {
+ const updateProduct = async (req, res) => {
     try {
         const { _id } = req.query
         const { name, description, categoryId, taxId } = req.body
@@ -155,3 +179,5 @@ export const updateProduct = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" })
     }
 }
+
+export {createProduct, listProduct, updateProduct, deleteProduct}
