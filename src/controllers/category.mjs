@@ -33,20 +33,45 @@ const createCategory = async (req, res) => {
         })
     } catch (error) {
         console.log(error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
 const listCategory = async (req, res) => {
     try {
-        // const {categoryId} = req.query
-        const categories = await Category.find().lean()
-        res.status(200).json({ categories })
+        const { name, page = 1, limit = 10 } = req.query;
+
+        const pageNumber = parseInt(page);
+        const limitNumber = parseInt(limit);
+        const skip = (pageNumber - 1) * limitNumber;
+
+        let query = {};
+        if (name) {
+            query.name = { $regex: name, $options: 'i' }; 
+        }
+
+        const categories = await Category.find(query).skip(skip).limit(limitNumber).lean();
+
+        const totalCategories = await Category.countDocuments(query);
+
+        res.status(200).json({
+            categories,
+            totalCategories,
+            page: pageNumber,
+            totalPages: Math.ceil(totalCategories / limitNumber)
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ message: "Internal Server Error" })
+        console.log(error);
+        res.status(500).json({
+            status: false,
+            message: `Error: ${error.message}`,
+        });
     }
-}
+};
+
 
 const updateCategory = async (req, res) => {
     try {
@@ -90,7 +115,10 @@ const updateCategory = async (req, res) => {
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -101,15 +129,13 @@ const removeCategory = async (req, res) => {
             return res.status(400).json({ message: "Category ID is required" })
         }
 
-        const productCount = await Product.countDocuments({categoryId: _id})
+        const productCount = await Product.countDocuments({ categoryId: _id })
         console.log("productCount", productCount)
         if (productCount > 0) {
-            return res
-                .status(400)
-                .json({
-                    message:
-                        "Cannot delete category. It is associated with products. ",
-                })
+            return res.status(400).json({
+                message:
+                    "Cannot delete category. It is associated with products. ",
+            })
         }
         // Check if the category exists
         const category = await Category.findById(_id).lean()
@@ -128,8 +154,11 @@ const removeCategory = async (req, res) => {
             message: "Category deleted successfully",
         })
     } catch (error) {
-        console.error("Error deleting category",error)
-        res.status(500).json({ message: "Internal Server Error" })
+        console.error("Error deleting category", error)
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 

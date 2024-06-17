@@ -7,9 +7,10 @@ import {
     listTax,
 } from "../controllers/tax.mjs"
 
-router.post("/create", createTax)
-router.delete("/remove", removeTax)
-router.patch("/update", updateTax)
-router.get("/list", listTax)
+import { verifyToken } from "../middlewares/verifytoken.mjs"
+router.post("/create", verifyToken, createTax)
+router.delete("/remove", verifyToken, removeTax)
+router.patch("/update", verifyToken, updateTax)
+router.get("/list", verifyToken, listTax)
 
 export default router

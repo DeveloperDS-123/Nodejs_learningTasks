@@ -41,7 +41,10 @@ const createStock = async (req, res) => {
             return res.status(400).json({ message: error.message })
         }
         console.error("Error creating stock:", error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -71,7 +74,10 @@ const listStocks = async (req, res) => {
         res.status(200).json({ stockDetails })
     } catch (error) {
         console.log("Error fetching stocks:", error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -111,7 +117,10 @@ if(stockCount>0){
         })
     } catch (error) {
         console.error("Error removing stock:", error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -155,8 +164,11 @@ const updateStocks = async (req, res) => {
             stock: stock,
         })
     } catch (error) {
-        console.error("Error updating stock:", error)
-        res.status(500).json({ message: "Internal Server Error" })
+        console.error("Error updating stock:", error.message)
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        }) 
     }
 }
 

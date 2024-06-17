@@ -62,36 +62,3 @@ const cartSchema = new mongoose.Schema(
 const Cart = mongoose.model("cart", cartSchema)
 export default Cart
 
-// import mongoose from "mongoose"
-
-// const cartItemSchema = new mongoose.Schema({
-//   products : {
-//     type: mongoose.Schema.Types.ObjectId,
-//     ref: "stocks"
-//   }
-// })
-
-// const cartSchema = new mongoose.Schema({
-//     userId: String,
-//     invoiceNumber: Number,
-//     items: [cartItemSchema],
-//     totalPriceWithTax: Number,
-//     totalPriceWithoutTax: Number,
-//     totalProducts: { type: Number, default: 0 },
-// })
-
-// // Define a pre-save hook to update the totalProducts field
-// cartSchema.pre("save", function (next) {
-//     // Calculate the total number of products
-//     const totalProducts = this.items.reduce(
-//         (acc, item) => acc + item.quantity,
-//         0
-//     )
-//     // Update the totalProducts field
-//     this.totalProducts = totalProducts
-//     next()
-// })
-
-// const Cart = mongoose.model("Cart", cartSchema)
-
-// export default Cart

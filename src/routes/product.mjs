@@ -6,11 +6,11 @@ import {
     deleteProduct,
     updateProduct
 } from "../controllers/product.mjs"
-import { verifyToken } from "../controllers/auth.mjs"
+import { verifyToken } from "../middlewares/verifytoken.mjs"
 
-router.post("/create", createProduct)
-router.get("/list",  listProduct)
-router.delete("/remove", deleteProduct)
-router.put("/update", updateProduct)
+router.post("/create",verifyToken, createProduct)
+router.get("/list", verifyToken,  listProduct)
+router.delete("/remove", verifyToken, deleteProduct)
+router.put("/update",verifyToken, updateProduct)
 
 export default router

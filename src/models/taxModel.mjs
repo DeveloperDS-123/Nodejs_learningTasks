@@ -6,9 +6,13 @@ const taxSchema = mongoose.Schema(
             type: String,
             required: true,
             unique: true,
+            trim: true,
+            lowercase: true,
         },
         description: {
             type: String,
+            trim: true,
+            lowercase: true,
         },
         type: {
             type: String,

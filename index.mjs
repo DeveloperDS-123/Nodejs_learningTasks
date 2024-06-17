@@ -1,3 +1,4 @@
+import cors from "cors"
 import express from "express"
 const app = express()
 
@@ -14,13 +15,14 @@ import taxRoutes from "./src/routes/tax.mjs"
 import stocksRoutes from "./src/routes/stocks.mjs"
 
 app.use(express.json())
+app.use(cors())
 
-app.use("/api/users", userRoutes)
+app.use("/api/user", userRoutes)
 app.use("/api/category", categoryRoutes)
 app.use("/api/product", productRoutes)
 app.use("/api/cart", cartRoutes)
 app.use("/api/tax", taxRoutes)
-app.use("/api/stocks",stocksRoutes)
+app.use("/api/stocks", stocksRoutes)
 
 connectDB()
     .then(() => {

@@ -1,58 +1,78 @@
 import User from "../models/userModel.mjs"
-import { hashPassword } from "../constants.mjs" // Your password hashing utility function
+import crypto from "crypto"
+
 import fs from "fs"
 
-import csvtojson from 'csvtojson';
+import csvtojson from "csvtojson"
+
+const hashConfig = {
+    hashBytes: parseInt(process.env.HASH_BYTES) || 32,
+    saltBytes: parseInt(process.env.SALT_BYTES) || 16,
+    iterations: parseInt(process.env.ITERATIONS) || 10000,
+    digest: process.env.DIGEST || "sha512",
+}
+
+export function hashPassword(password) {
+    const { iterations, hashBytes, digest } = hashConfig
+    const salt = crypto.randomBytes(16).toString("hex")
+    const hash = crypto
+        .pbkdf2Sync(password, salt, iterations, hashBytes, digest)
+        .toString("hex")
+    console.log(`Generated hash for password "${password}": ${salt}$${hash}`)
+    return `${salt}$${hash}`
+} 
+
 // Route for CSV file upload
+
 const uploadFile = async (req, res) => {
     try {
-        // Check if file is provided
         if (!req.file) {
-            return res.status(400).json({ message: 'CSV file is required' });
+            return res.status(400).json({ message: "CSV file is required" })
         }
 
-        // Parse CSV file and convert data to JSON
-        const jsonArray = await csvtojson().fromFile(req.file.path);
+        const jsonArray = await csvtojson().fromFile(req.file.path)
 
-        // Iterate over parsed user details and create accounts
         for (const user of jsonArray) {
-            const { name, email, password } = user;
+            const { name, email, password } = user
 
-            // Validate required fields
             if (!name || !email || !password) {
-                console.log(`Skipping user ${email}: Missing required fields`);
-                continue;
+                console.log(`Skipping user ${email}: Missing required fields`)
+                continue
             }
 
-            // Check if email already exists
-            const existingUser = await User.findOne({ email }).lean();
+            const existingUser = await User.findOne({
+                email: email.toLowerCase(),
+            }).lean()
             if (existingUser) {
-                console.log(`Skipping user ${email}: Email already exists`);
-                continue;
+                console.log(`Skipping user ${email}: Email already exists`)
+                continue
             }
 
-            // Hash the password before saving
-            const hashedPassword = hashPassword(password);
+            const trimmedPassword = password.trim() // Ensure no leading/trailing spaces
+            const hashedPassword = hashPassword(trimmedPassword)
+            console.log(
+                `Saving user ${email} with hashed password: ${hashedPassword}`
+            )
 
-            // Create new user instance
             const newUser = new User({
-                name,
-                email,
+                name: name.toLowerCase(),
+                email: email.toLowerCase(),
                 password: hashedPassword,
-            });
+            })
 
-            // Save user to the database
-            await newUser.save();
-            console.log(`User ${email} created successfully`);
+            await newUser.save()
+            console.log(`User ${email} created successfully`)
         }
 
-        // Remove uploaded file
-        fs.unlinkSync(req.file.path);
+        fs.unlinkSync(req.file.path)
 
-        res.status(200).json({ message: 'Users created successfully' });
+        res.status(200).json({ message: "Users created successfully" })
     } catch (error) {
-        console.error('Error uploading CSV file:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        console.error("Error uploading CSV file:", error.message)
+        res.status(500).json({
+            status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 

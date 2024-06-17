@@ -13,12 +13,24 @@ const hashConfig = {
     digest: process.env.DIGEST || "sha512",
 }
 
-// Password Hashing
 export function hashPassword(password) {
-    const { iterations, hashBytes, digest, saltBytes } = hashConfig
-    const salt = crypto.randomBytes(saltBytes).toString("hex")
+    const { iterations, hashBytes, digest } = hashConfig
+    const salt = crypto.randomBytes(16).toString("hex")
     const hash = crypto
         .pbkdf2Sync(password, salt, iterations, hashBytes, digest)
         .toString("hex")
-    return [salt, hash].join("$")
+    console.log(`Generated hash for password "${password}": ${salt}$${hash}`)
+    return `${salt}$${hash}`
+}
+
+export function verifyPassword(password, combined) {
+    const { iterations, hashBytes, digest } = hashConfig
+    const [salt, originalHash] = combined.split("$")
+    const hash = crypto
+        .pbkdf2Sync(password, salt, iterations, hashBytes, digest)
+        .toString("hex")
+    console.log(
+        `Verifying password "${password}" with salt "${salt}": ${hash} against original: ${originalHash}`
+    )
+    return hash === originalHash
 }

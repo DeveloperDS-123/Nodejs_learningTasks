@@ -44,7 +44,10 @@ import Stock from "../models/stockModel.mjs"
         })
     } catch (error) {
         console.log("error", error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -77,7 +80,10 @@ import Stock from "../models/stockModel.mjs"
         res.status(200).json({ productDetails })
     } catch (error) {
         console.log("Error fetching products:", error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -86,7 +92,7 @@ import Stock from "../models/stockModel.mjs"
         const { _id } = req.query
         console.log("idddddddddd", _id)
         const productStocksCount = await Stock.countDocuments({productId:_id})
-        console.log("productStocksCount", productStocksCount)
+        console.log("productStocksCo888888888888888888888888unt", productStocksCount)
         if (productStocksCount > 0) {
             return res
                 .status(400)
@@ -96,9 +102,11 @@ import Stock from "../models/stockModel.mjs"
                 })
         }
 
-        const cartproductCount = await Cart.countDocuments({productId: _id})
-        console.log("cartproductCount", cartproductCount)
-        if (cartproductCount > 0) {
+        const cartProductCount = await Cart.countDocuments({
+            products: { $elemMatch: { productId: _id } }
+        });
+        console.log("cartProductCount", cartProductCount);
+        if (cartProductCount > 0) {
             return res
                 .status(400)
                 .json({
@@ -125,7 +133,10 @@ import Stock from "../models/stockModel.mjs"
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -176,7 +187,10 @@ import Stock from "../models/stockModel.mjs"
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 

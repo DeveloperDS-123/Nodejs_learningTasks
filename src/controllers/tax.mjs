@@ -16,7 +16,9 @@ const createTax = async (req, res) => {
             })
         }
 
-        const existingTax = await Tax.findOne({ name }).lean()
+        const existingTax = await Tax.findOne({
+            name: name.toLowerCase(),
+        }).lean()
         if (existingTax) {
             return res
                 .status(400)
@@ -24,8 +26,8 @@ const createTax = async (req, res) => {
         }
 
         const taxDetails = await new Tax({
-            name,
-            description,
+            name: name.toLowerCase(),
+            description : description.toLowerCase(),
             type,
             value,
         })
@@ -38,7 +40,10 @@ const createTax = async (req, res) => {
         })
     } catch (error) {
         console.error(error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -48,15 +53,12 @@ const removeTax = async (req, res) => {
         if (!_id) {
             return res.status(400).json({ message: "TaxId is required" })
         }
-        const productCount = await Product.countDocuments({taxId: _id})
+        const productCount = await Product.countDocuments({ taxId: _id })
         console.log("product count", productCount)
         if (productCount > 0) {
-            return res
-                .status(400)
-                .json({
-                    message:
-                        "Cannot delete tax. It is associated with products.",
-                })
+            return res.status(400).json({
+                message: "Cannot delete tax. It is associated with products.",
+            })
         }
         const deletedTax = await Tax.findByIdAndDelete(_id)
 
@@ -66,7 +68,10 @@ const removeTax = async (req, res) => {
         res.status(200).json({ message: "Tax deleted successfully." })
     } catch (error) {
         console.log("Error deleting tax:", error)
-        res.status(500).json({ message: "Internal Server Error" })
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -92,7 +97,7 @@ const updateTax = async (req, res) => {
         // Find tax document by ID and update it
         const updatedTax = await Tax.findByIdAndUpdate(
             _id,
-            { name, description, type, value },
+            { name: name.toLowerCase(), description: description.toLowerCase(), type, value },
             { new: true }
         )
 
@@ -108,8 +113,11 @@ const updateTax = async (req, res) => {
             tax: updatedTax,
         })
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ message: "Internal Server Error" })
+        console.error(error.message)
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
@@ -123,7 +131,7 @@ const listTax = async (req, res) => {
         let skip = (page - 1) * limit
 
         if (name) {
-            return (query.name = name)
+            return (query.name = name.toLowerCase())
         }
         if (taxId) {
             return (query._id = taxId)
@@ -134,8 +142,11 @@ const listTax = async (req, res) => {
             taxList,
         })
     } catch (error) {
-        console.error(error)
-        res.status(500).json({ message: "Internal Server Error" })
+        console.error(error.message)
+        res.status(500).json({
+            Status: false,
+            message: `Error is ${error.message}`,
+        })
     }
 }
 
